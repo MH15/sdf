@@ -7,12 +7,12 @@
 
 import Grid from "./Grid"
 
-var a = new Grid(4, 4)
+var a = new Grid(10, 10)
 // console.log(a.store)
 
-a.generate(3)
+a.generate(4)
 // console.log(a.store)
-a.print()
+// a.print()
 
 
 a.expand()

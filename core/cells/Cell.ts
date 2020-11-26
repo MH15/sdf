@@ -7,5 +7,7 @@ export default class Cell {
 
 export enum CellType {
     Empty,
-    Full
+    Full,
+    Expanded,
+    Bump
 }

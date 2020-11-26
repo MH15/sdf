@@ -55,11 +55,48 @@ export default class Grid {
 
     }
 
+    private getAdjacentPosition(pos: Vector2): Vector2 | false {
+        let next = new Vector2(pos.x, pos.y)
+        let dir = randIntRange(0, 3) // 0: Left, 1: Up, 2: Right, 3: Down
+        switch (dir) {
+            case 0: // Left
+                next.x -= 1
+                break
+            case 1: // Up
+                next.y -= 1
+                break
+            case 2: // Right
+                next.x += 1
+                break
+            case 3: // Down
+                next.y += 1
+                break
+        }
+        // check if next is inside the Grid bounds
+        // if not, recurse until it is
+        if (next.inside(new Vector2(0, 0), new Vector2(this.width, this.height))) {
+            console.log("reee")
+            return next
+        } else {
+            console.log("yer")
+            return false
+        }
+
+    }
+
     public expand(): void {
         for (let y = 0; y < this.height; y++) {
             for (let x = 0; x < this.width; x++) {
                 let c = this.store[y][x]
-                // choose a direction to expand in
+                if (c.cellType == CellType.Full) {
+                    // choose a direction to expand in
+                    let nextCell = this.getAdjacentPosition(new Vector2(x, y))
+                    if (nextCell == false) {
+                        c.cellType = CellType.Bump
+                    } else {
+                        this.store[nextCell.y][nextCell.x].cellType = CellType.Expanded
+                    }
+                }
             }
         }
     }
