@@ -7,6 +7,22 @@ export default class Vector2 {
     }
 
     /**
+     * Returns (this.x/other.x, this.y/other.y)
+     * @param other another Vector2
+     */
+    divide(other: Vector2): Vector2 {
+        return new Vector2(this.x / other.x, this.y / other.y)
+    }
+
+    /**
+     * Returns (this.x/scalar, this.y/scalar)
+     * @param scalar factor
+     */
+    // divide(scalar: number): Vector2 {
+    //     return new Vector2(this.x / scalar, this.y / scalar)
+    // }
+
+    /**
      * Check if a Vector is inside a 2d range
      * @param start the (0,0) of the range
      * @param end the (width, height) of the range

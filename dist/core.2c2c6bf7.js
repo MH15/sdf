@@ -117,7 +117,274 @@ parcelRequire = (function (modules, cache, entry, globalName) {
   }
 
   return newRequire;
-})({"node_modules/regl/dist/regl.js":[function(require,module,exports) {
+})({"core/cells/Cell.ts":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.CellType = void 0;
+
+var Cell =
+/** @class */
+function () {
+  function Cell(x, y) {
+    this.cellType = CellType.Empty;
+  }
+
+  return Cell;
+}();
+
+exports.default = Cell;
+var CellType;
+
+(function (CellType) {
+  CellType[CellType["Empty"] = 0] = "Empty";
+  CellType[CellType["Full"] = 1] = "Full";
+  CellType[CellType["Expanded"] = 2] = "Expanded";
+  CellType[CellType["Bump"] = 3] = "Bump";
+})(CellType = exports.CellType || (exports.CellType = {}));
+},{}],"core/helpers/random.ts":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.randIntRange = void 0;
+
+function randIntRange(start, count) {
+  return Math.floor(Math.random() * count) + start;
+}
+
+exports.randIntRange = randIntRange;
+},{}],"core/helpers/Vector2.ts":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var Vector2 =
+/** @class */
+function () {
+  function Vector2(x, y) {
+    this.x = x;
+    this.y = y;
+  }
+  /**
+   * Returns (this.x/other.x, this.y/other.y)
+   * @param other another Vector2
+   */
+
+
+  Vector2.prototype.divide = function (other) {
+    return new Vector2(this.x / other.x, this.y / other.y);
+  };
+  /**
+   * Returns (this.x/scalar, this.y/scalar)
+   * @param scalar factor
+   */
+  // divide(scalar: number): Vector2 {
+  //     return new Vector2(this.x / scalar, this.y / scalar)
+  // }
+
+  /**
+   * Check if a Vector is inside a 2d range
+   * @param start the (0,0) of the range
+   * @param end the (width, height) of the range
+   */
+
+
+  Vector2.prototype.inside = function (start, end) {
+    if (this.x > start.x && this.x < end.x) {
+      if (this.y > start.y && this.y < end.y) {
+        return true;
+      }
+    }
+
+    return false;
+  };
+
+  return Vector2;
+}();
+
+exports.default = Vector2;
+},{}],"core/Grid.ts":[function(require,module,exports) {
+"use strict";
+
+var __createBinding = this && this.__createBinding || (Object.create ? function (o, m, k, k2) {
+  if (k2 === undefined) k2 = k;
+  Object.defineProperty(o, k2, {
+    enumerable: true,
+    get: function get() {
+      return m[k];
+    }
+  });
+} : function (o, m, k, k2) {
+  if (k2 === undefined) k2 = k;
+  o[k2] = m[k];
+});
+
+var __setModuleDefault = this && this.__setModuleDefault || (Object.create ? function (o, v) {
+  Object.defineProperty(o, "default", {
+    enumerable: true,
+    value: v
+  });
+} : function (o, v) {
+  o["default"] = v;
+});
+
+var __importStar = this && this.__importStar || function (mod) {
+  if (mod && mod.__esModule) return mod;
+  var result = {};
+  if (mod != null) for (var k in mod) {
+    if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+  }
+
+  __setModuleDefault(result, mod);
+
+  return result;
+};
+
+var __importDefault = this && this.__importDefault || function (mod) {
+  return mod && mod.__esModule ? mod : {
+    "default": mod
+  };
+};
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var Cell_1 = __importStar(require("./cells/Cell"));
+
+var random_1 = require("./helpers/random");
+
+var Vector2_1 = __importDefault(require("./helpers/Vector2"));
+
+var Grid =
+/** @class */
+function () {
+  function Grid(width, height) {
+    this.width = width;
+    this.height = height;
+    this.store = [];
+
+    for (var y = 0; y < height; y++) {
+      this.store[y] = [];
+
+      for (var x = 0; x < width; x++) {
+        this.store[y][x] = new Cell_1.default(y, x);
+      }
+    }
+  }
+
+  Grid.prototype.getRandomIndex = function () {
+    var x = random_1.randIntRange(0, this.width);
+    var y = random_1.randIntRange(0, this.height);
+    return new Vector2_1.default(x, y);
+  };
+
+  Grid.prototype.addNode = function () {
+    var pos = this.getRandomIndex(); // console.log(pos)
+
+    return pos;
+  };
+
+  Grid.prototype.generate = function (count) {
+    /**
+     * Steps:
+     * - find a set of `n` points inside the Grid
+     * - move 1-3 cells randomly from each point, adding new points to the set
+     */
+    var _this = this;
+
+    var points = [];
+
+    for (var i = 0; i < count; i++) {
+      points.push(this.addNode());
+    }
+
+    console.log(points);
+    points.forEach(function (point) {
+      // let c = new Cell(point.x, point.y)
+      // c.cellType = CellType.Full
+      _this.store[point.y][point.x].cellType = Cell_1.CellType.Full;
+    });
+  };
+
+  Grid.prototype.getAdjacentPosition = function (pos) {
+    var next = new Vector2_1.default(pos.x, pos.y);
+    var dir = random_1.randIntRange(0, 3); // 0: Left, 1: Up, 2: Right, 3: Down
+
+    switch (dir) {
+      case 0:
+        // Left
+        next.x -= 1;
+        break;
+
+      case 1:
+        // Up
+        next.y -= 1;
+        break;
+
+      case 2:
+        // Right
+        next.x += 1;
+        break;
+
+      case 3:
+        // Down
+        next.y += 1;
+        break;
+    } // check if next is inside the Grid bounds
+    // if not, recurse until it is
+
+
+    if (next.inside(new Vector2_1.default(0, 0), new Vector2_1.default(this.width, this.height))) {
+      console.log("reee");
+      return next;
+    } else {
+      console.log("yer");
+      return false;
+    }
+  };
+
+  Grid.prototype.expand = function () {
+    for (var y = 0; y < this.height; y++) {
+      for (var x = 0; x < this.width; x++) {
+        var c = this.store[y][x];
+
+        if (c.cellType == Cell_1.CellType.Full) {
+          // choose a direction to expand in
+          var nextCell = this.getAdjacentPosition(new Vector2_1.default(x, y));
+
+          if (nextCell == false) {
+            c.cellType = Cell_1.CellType.Bump;
+          } else {
+            this.store[nextCell.y][nextCell.x].cellType = Cell_1.CellType.Expanded;
+          }
+        }
+      }
+    }
+  };
+
+  Grid.prototype.print = function () {
+    var s = "";
+    this.store.forEach(function (row) {
+      row.forEach(function (col) {
+        s += col.cellType + ", ";
+      });
+      s += "\n";
+    });
+    console.log(s);
+  };
+
+  return Grid;
+}();
+
+exports.default = Grid;
+},{"./cells/Cell":"core/cells/Cell.ts","./helpers/random":"core/helpers/random.ts","./helpers/Vector2":"core/helpers/Vector2.ts"}],"node_modules/regl/dist/regl.js":[function(require,module,exports) {
 var define;
 var global = arguments[3];
 (function (global, factory) {
@@ -10608,41 +10875,313 @@ return wrapREGL;
 })));
 
 
-},{}],"core/index.ts":[function(require,module,exports) {
+},{}],"../../../../../usr/local/lib/node_modules/parcel-bundler/src/builtins/_empty.js":[function(require,module,exports) {
+
+},{}],"core/Game.ts":[function(require,module,exports) {
 "use strict";
+
+var __assign = this && this.__assign || function () {
+  __assign = Object.assign || function (t) {
+    for (var s, i = 1, n = arguments.length; i < n; i++) {
+      s = arguments[i];
+
+      for (var p in s) {
+        if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
+      }
+    }
+
+    return t;
+  };
+
+  return __assign.apply(this, arguments);
+};
+
+var __spreadArrays = this && this.__spreadArrays || function () {
+  for (var s = 0, i = 0, il = arguments.length; i < il; i++) {
+    s += arguments[i].length;
+  }
+
+  for (var r = Array(s), k = 0, i = 0; i < il; i++) {
+    for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++) {
+      r[k] = a[j];
+    }
+  }
+
+  return r;
+};
+
+var __importDefault = this && this.__importDefault || function (mod) {
+  return mod && mod.__esModule ? mod : {
+    "default": mod
+  };
+};
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
+var Grid_1 = __importDefault(require("./Grid"));
+
+var Vector2_1 = __importDefault(require("./helpers/Vector2"));
+
 var REGL = require("regl");
 
-var regl = REGL(document.getElementById("regl")); // This clears the color buffer to black and the depth buffer to 1
+var fs_1 = require("fs");
+/**
+ * Manage the Game state between Regl and position/collision logic
+ */
 
-regl.clear({
-  color: [0, 0, 0, 1],
-  depth: 1
-});
-var draw = regl({
-  frag: "\n    precision highp float;\n\n    uniform vec2 u_resolution;\n    uniform vec2 u_mouse;\n    uniform float u_time;\n\n    float plot(vec2 st, float pct){\n      return  smoothstep( pct-0.02, pct, st.y) -\n              smoothstep( pct, pct+0.02, st.y);\n    }\nfloat sdCircle(in vec2 p, in vec2 pos, float radius)\n{\n    return length(p-pos)-radius;\n}\n\nfloat sdBox(in vec2 p, in vec2 pos, in vec2 size)\n{\n    vec2 d = abs(p-pos)-size;\n    return min(0.0, max(d.x, d.y))+length(max(d,0.0));\n}\n\n// polynomial smooth min (k = 0.1);\nfloat sminCubic(float a, float b, float k)\n{\n    float h = max(k-abs(a-b), 0.0);\n    return min(a, b) - h*h*h/(6.0*k*k);\n}\n\nfloat opU(float d1, float d2)\n{\n    return min(d1, d2);\n}\n\nfloat opBlend(float d1, float d2)\n{\n    float k = 0.2;\n    return sminCubic(d1, d2, k);\n}\n\nfloat opSmoothUnion( float d1, float d2, float k ) {\n    float h = clamp( 0.5 + 0.5*(d2-d1)/k, 0.0, 1.0 );\n    return mix( d2, d1, h ) - k*h*(1.0-h); }\n\n\nfloat sdRoundedBox( in vec2 p, in vec2 b, in vec4 r )\n{\n    r.xy = (p.x>0.0)?r.xy : r.zw;\n    r.x  = (p.y>0.0)?r.x  : r.y;\n    vec2 q = abs(p)-b+r.x;\n    return min(max(q.x,q.y),0.0) + length(max(q,0.0)) - r.x;\n}\n\nfloat opRound( in vec2 p, in float r )\n{\n  return sdBox(p, vec2(1., 0.), vec2(.1)) - r;\n}\n\nfloat opRoundBox( in vec2 p, in vec2 pos, in vec2 size, in float r )\n{\n  return sdBox(p, pos, size) - r;\n}\n// https://www.shadertoy.com/view/ll2GD3\nvec3 palette(in float t, in vec3 a, in vec3 b, in vec3 c, in vec3 d)\n{\n    t = clamp(t, 0., 1.);\n    return a + b*cos(6.28318*(c*t+d));\n}\n\n\nvec3 shade(float sd)\n{\n    float maxDist = 2.0;\n    vec3 palCol = palette(clamp(0.5-sd*0.4, -maxDist,maxDist), \n                      vec3(0.3,0.3,0.0),vec3(0.8,0.8,0.1),vec3(0.9,0.7,0.0),vec3(0.3,0.9,0.8));\n\n    vec3 col = palCol;\n    \n    // Darken around surface\n\tcol = mix(col, col*1.0-exp(-10.0*abs(sd)), 0.4);\n\t// repeating lines\n    col *= 0.8 + 0.2*cos(150.0*sd);\n    // White outline at surface\n    col = mix(col, vec3(1.0), 1.0-smoothstep(0.0,0.01,abs(sd)));\n    \n    return col;\n}\n\n\nfloat sdf(vec2 p)\n{\n    float d = 1000.0;\n    \n    float a = sdCircle(p, vec2(0., 0.), 0.35);\n    //float b = sdCircle(p, vec2( 0.7 + sin(iTime/2.)/2., 0.1), 0.55);\n    //float c = sdBox(p, vec2( -0.7 + sin(iTime/2.)/2., -.4), vec2(.5));\n    \n    //return sminCubic(sminCubic(a,b,.2),c,.6);\n    \n   //float a = sdBox(p, vec2(0., -1.), vec2(.5));\n    //float a = opRoundBox(p, vec2(1,1), vec2(.5),.1);\n    float b = opRoundBox(p, vec2(-1,0), vec2(.5),.1);\n\treturn opSmoothUnion(a,b,.4); \n\n\treturn a;\n}\n\nvec2 screenToWorld(vec2 screen)\n{\n    vec2 result = 2.0 * (screen/u_resolution.xy - 0.5);\n    result.x *= u_resolution.x/u_resolution.y;\n    return result;\n}\n\nvoid main(){\n  vec2 st = gl_FragCoord.xy/u_resolution;\n\n  float y = st.x;\n\n  vec3 color = vec3(y);\n\n  // Plot a line\n  float pct = plot(st,y);\n  color = (1.0-pct)*color+pct*vec3(0.0,1.0,0.0);\n\n  gl_FragColor = vec4(st.x,st.y,0.0,1.0);\n\n  vec2 fragCoord = gl_FragCoord.xy;\n\n    // project screen coordinate into world\n\tvec2 p = screenToWorld(fragCoord);\n    \n    // signed distance for scene\n    float sd = sdf(p);\n\n// compute signed distance to a colour\n    vec3 col = shade(sd);\n\n\tgl_FragColor = vec4(col, 1.0);\n\n\t//if (distance(fragCoord, vec2(0,0)) < 1000.) {\n\t//\tgl_FragColor = vec4(1,0,0,0);\n\t//}\n\n}\n\n\n  ",
-  vert: "\n    attribute vec2 position;\n    void main(){\n      gl_Position = vec4(position, 0, 1);\n    }\n  ",
-  count: 4,
-  primitive: 'triangle fan',
-  uniforms: {
-    //@ts-ignore
-    u_resolution: regl.prop('resolution')
-  },
-  attributes: {
-    position: [[-1, -1], [-1, 1], [1, 1], [1, -1]]
+
+var Game =
+/** @class */
+function () {
+  function Game(canvasID) {
+    this.rows = 10;
+    this.cols = this.rows;
+    this.lastTime = 0.0;
+    this.currentTime = 0.0;
+    this.deltaTime = 0.0;
+    this.positions = [];
+    this.canvas = document.getElementById(canvasID);
+    this.canvasSize = new Vector2_1.default(this.canvas.width, this.canvas.height);
+    this.blockSize = this.canvasSize.divide(new Vector2_1.default(this.rows, this.cols));
+    this.grid = new Grid_1.default(this.rows, this.cols);
+    this.grid.generate(4);
+    this.grid.expand();
+    this.regl = REGL(this.canvas);
+    this.regl.clear({
+      color: [0, 0, 0, 1],
+      depth: 1
+    });
+    this.fragShader = "precision highp float;\n\nuniform vec2 u_resolution;\nuniform vec2 u_mouse;\nuniform float u_time;\n\nuniform float u_test;\nuniform float u_smooth_factor;\n\nuniform vec2 u_coords[10];\n// uniform float u_y_coords[10];\n// int xLength = 10;\n// int yLength = 10;\n\nfloat plot(vec2 st, float pct){\n\treturn smoothstep( pct-0.02, pct, st.y) -\n\t\t\tsmoothstep( pct, pct+0.02, st.y);\n}\n\nfloat sdCircle(in vec2 p, in vec2 pos, float radius)\n{\n\treturn length(p-pos)-radius;\n}\n\nfloat sdBox(in vec2 p, in vec2 pos, in vec2 size)\n{\n\tvec2 d = abs(p-pos)-size;\n\treturn min(0.0, max(d.x, d.y))+length(max(d,0.0));\n}\n\n// polynomial smooth min (k = 0.1);\nfloat sminCubic(float a, float b, float k)\n{\n\tfloat h = max(k-abs(a-b), 0.0);\n\treturn min(a, b) - h*h*h/(6.0*k*k);\n}\n\nfloat opU(float d1, float d2)\n{\n\treturn min(d1, d2);\n}\n\n\nfloat opSmoothUnion( float d1, float d2, float k ) {\n\tfloat h = clamp( 0.5 + 0.5*(d2-d1)/k, 0.0, 1.0 );\n\treturn mix( d2, d1, h ) - k*h*(1.0-h); }\n\n\nfloat sdRoundedBox( in vec2 p, in vec2 b, in vec4 r )\n{\n\tr.xy = (p.x>0.0)?r.xy : r.zw;\n\tr.x  = (p.y>0.0)?r.x  : r.y;\n\tvec2 q = abs(p)-b+r.x;\n\treturn min(max(q.x,q.y),0.0) + length(max(q,0.0)) - r.x;\n}\n\n\n\n// https://www.shadertoy.com/view/ll2GD3\nvec3 palette(in float t, in vec3 a, in vec3 b, in vec3 c, in vec3 d)\n{\n\tt = clamp(t, 0., 1.);\n\treturn a + b*cos(6.28318*(c*t+d));\n}\n\n\nvec3 shade(float sd)\n{\n\tfloat maxDist = 2.0;\n\tvec3 palCol = palette(clamp(0.5-sd*0.4, -maxDist,maxDist), \n\t\t\t\t\t  vec3(0.3,0.3,0.0),vec3(0.8,0.8,0.1),vec3(0.9,0.7,0.0),vec3(0.3,0.9,0.8));\n\n\tvec3 col = palCol;\n\n\t// Backdrop color\n\tcol = vec3(1,1,1);\n\n\t// Shadows around shapes, last parameter is intensity\n\tcol = mix(col, col*1.0-exp(-30.0*abs(sd)), 0.5);\n\t// repeating lines\n\t// col *= 0.8 + 0.2*cos(150.0*sd);\n\t// White outline at surface\n\tcol = mix(col, vec3(1.0), 1.0-smoothstep(0.0,0.01,abs(sd)));\n\n\t// Shape color\n\tfloat t = 1.0/u_resolution.y;\n\tcol = mix(col, vec3(1.0), 1.-smoothstep(-t*1.5, t*1.5, sd));\n\n\t// float c = smoothstep(-t*1.5,t*1.5,d)-length(p)/3.0;\n    \n    // grid lines\n    // c -= saturate(repeat(p.x*20.0) - 0.92)*1.5;\n    // c -= saturate(repeat(p.y*20.0) - 0.92)*1.5;\n\n\n\n\n\treturn col;\n}\n\nfloat opRoundBox( in vec2 p, in vec2 pos, in float radius )\n{\n  return sdBox(p, pos, vec2(.05)) - radius;\n}\n\nfloat opUnion( float d1, float d2 ) {  return min(d1,d2); }\n\n\n// exponential smooth min (k = 32);\nfloat sminExp( float a, float b, float k )\n{\n    float res = exp2( -k*a ) + exp2( -k*b );\n    return -log2( res )/k;\n}\n// polynomial smooth min (k = 0.1);\nfloat sminPoly( float a, float b, float k )\n{\n    float h = clamp( 0.5+0.5*(b-a)/k, 0.0, 1.0 );\n    return mix( b, a, h ) - k*h*(1.0-h);\n}\n// power smooth min (k = 8);\nfloat sminPow( float a, float b, float k )\n{\n    a = pow( a, k ); b = pow( b, k );\n    return pow( (a*b)/(a+b), 1.0/k );\n}\n\n\n\nfloat sdf(vec2 p)\n{\n\tfloat d = 1000.0;\n\n\t// d = opSmoothUnion(d, sdBox(p, vec2(0,0), vec2(.1,.1)),\n\t// .1);\n\n\tfloat left = sdBox(p, vec2(-1,0), vec2(1,2));\n\tfloat right = sdBox(p, vec2(3,0), vec2(1,2));\n\tfloat top = sdBox(p, vec2(0,-1), vec2(2,1));\n\tfloat bottom = sdBox(p, vec2(0,3), vec2(2,1));\n\n\td = opSmoothUnion(d, left, u_smooth_factor * .1);\n\td = opSmoothUnion(d, right, u_smooth_factor * .1);\n\td = opSmoothUnion(d, top, u_smooth_factor * .1);\n\td = opSmoothUnion(d, bottom, u_smooth_factor * .1);\n\n\tfor(int i = 0; i < 10; i++) {\n\t\tvec2 pos = u_coords[i];\n\t\tpos.x *= .2;\n\t\tpos.y *= .2;\n\t\tpos.x += .1;\n\t\tpos.y += .1;\n\t\tfloat box = opRoundBox(p, pos, .05);\n\t\t// float box = sdBox(p, pos, vec2(.1));\n\t\td = opSmoothUnion(d, box, u_smooth_factor * .5);\n\t\t// d = sminPoly(d, box,.1);\n\t\t// d = sminExp(d, box,u_smooth_factor * 32.);\n\t}\n\n\treturn d;\n}\n\nvec2 screenToWorld(vec2 screen)\n{\n\t// [0,2] should be the canvas width/height\n\tvec2 result = 2.0 * (screen/u_resolution.xy - .5);\n\tresult.x *= u_resolution.x/u_resolution.y;\n\t// orgin should be in top-right corner\n\tresult.x += 1.;\n\tresult.y -= 1.;\n\tresult.y *= -1.;\n\treturn result;\n}\n\nvoid main() {\n\tvec2 st = gl_FragCoord.xy/u_resolution;\n\n\tfloat y = st.x;\n\n\tvec3 color = vec3(y);\n\n\t// Plot a line\n\tfloat pct = plot(st,y);\n\tcolor = (1.0-pct)*color+pct*vec3(0.0,1.0,0.0);\n\n\tgl_FragColor = vec4(st.x,st.y,0.0,1.0);\n\n\tvec2 fragCoord = gl_FragCoord.xy;\n\n\t// project screen coordinate into world\n\tvec2 p = screenToWorld(fragCoord);\n\n\t// signed distance for scene\n\tfloat sd = sdf(p);\n\n\t// compute signed distance to a colour\n\tvec3 col = shade(sd);\n\n\n\n\tgl_FragColor = vec4(col, 1.0);\n\n\t//if (distance(fragCoord, vec2(0,0)) < 1000.) {\n\t//\tgl_FragColor = vec4(1,0,0,0);\n\t//}\n\n}\n";
+    this.positions = [new Vector2_1.default(0, 0), new Vector2_1.default(1, 0), new Vector2_1.default(1, 1), new Vector2_1.default(3, 3), new Vector2_1.default(4, 3), new Vector2_1.default(5, 5), new Vector2_1.default(6, 6), new Vector2_1.default(7, 7), new Vector2_1.default(8, 8), new Vector2_1.default(9, 9), new Vector2_1.default(10, 10)];
   }
+
+  Game.prototype.start = function () {
+    var _this = this;
+
+    this.draw = this.regl({
+      frag: this.fragShader,
+      vert: "\n                attribute vec2 position;\n                void main() {\n                    gl_Position = vec4(position, 0, 1);\n                }\n            ",
+      // enough vertices to cover the canvas
+      count: 4,
+      // two triangles
+      primitive: 'triangle fan',
+      // pass screen space resolution to fragment shader
+      uniforms: __assign(__assign({
+        // @ts-ignore
+        u_resolution: this.regl.prop('resolution'),
+        // @ts-ignore
+        u_test: this.regl.prop('test')
+      }, __spreadArrays(new Array(10)).reduce(function (acc, val, index) {
+        var vec = _this.positions[index]; // @ts-ignore
+
+        acc["u_coords[" + index + "]"] = [vec.x, vec.y];
+        console.log([vec.x, vec.y]);
+        return acc;
+      }, {})), {
+        // @ts-ignore
+        u_smooth_factor: this.regl.prop("smooth_factor")
+      }),
+      attributes: {
+        // the positions of our four corners in world psace
+        position: [[-1, -1], [-1, 1], [1, 1], [1, -1]]
+      }
+    });
+    this.regl.frame(function () {
+      _this.update();
+    });
+  };
+
+  Game.prototype.getCoords = function () {
+    var buf = this.regl.buffer(Float32Array.from([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]));
+    return buf;
+  };
+
+  Game.prototype.update = function () {
+    var resolution = [this.canvas.width, this.canvas.height];
+    var test = 0.5; // console.log(this.regl.context("time"))
+
+    var coords = this.getCoords();
+    var smooth = +document.querySelector("#scale-input").value; // 0.16 is good
+
+    this.draw({
+      resolution: resolution,
+      test: test,
+      coords: coords,
+      smooth_factor: smooth
+    }); // send state to regl
+    // no draw() method as regl takes care of this
+    // user input
+    // collision detection
+    // position update
+    // send to regl
+  };
+
+  return Game;
+}();
+
+exports.default = Game;
+},{"./Grid":"core/Grid.ts","./helpers/Vector2":"core/helpers/Vector2.ts","regl":"node_modules/regl/dist/regl.js","fs":"../../../../../usr/local/lib/node_modules/parcel-bundler/src/builtins/_empty.js"}],"core/index.ts":[function(require,module,exports) {
+"use strict";
+
+var __importDefault = this && this.__importDefault || function (mod) {
+  return mod && mod.__esModule ? mod : {
+    "default": mod
+  };
+};
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
 });
-regl.frame(function () {
-  var resolution = [window.innerWidth, window.innerHeight];
-  draw({
-    resolution: resolution
-  });
-});
-},{"regl":"node_modules/regl/dist/regl.js"}],"../../../../../usr/local/lib/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+
+var Game_1 = __importDefault(require("./Game"));
+
+var game = new Game_1.default("regl");
+game.start(); // import REGL = require('regl')
+// let regl = REGL(document.getElementById("regl"))
+// // This clears the color buffer to black and the depth buffer to 1
+// regl.clear({
+//     color: [0, 0, 0, 1],
+//     depth: 1
+// })
+// const draw = regl({
+//     frag: `
+//     precision highp float;
+//     uniform vec2 u_resolution;
+//     uniform vec2 u_mouse;
+//     uniform float u_time;
+//     float plot(vec2 st, float pct){
+//       return  smoothstep( pct-0.02, pct, st.y) -
+//               smoothstep( pct, pct+0.02, st.y);
+//     }
+// float sdCircle(in vec2 p, in vec2 pos, float radius)
+// {
+//     return length(p-pos)-radius;
+// }
+// float sdBox(in vec2 p, in vec2 pos, in vec2 size)
+// {
+//     vec2 d = abs(p-pos)-size;
+//     return min(0.0, max(d.x, d.y))+length(max(d,0.0));
+// }
+// // polynomial smooth min (k = 0.1);
+// float sminCubic(float a, float b, float k)
+// {
+//     float h = max(k-abs(a-b), 0.0);
+//     return min(a, b) - h*h*h/(6.0*k*k);
+// }
+// float opU(float d1, float d2)
+// {
+//     return min(d1, d2);
+// }
+// float opBlend(float d1, float d2)
+// {
+//     float k = 0.2;
+//     return sminCubic(d1, d2, k);
+// }
+// float opSmoothUnion( float d1, float d2, float k ) {
+//     float h = clamp( 0.5 + 0.5*(d2-d1)/k, 0.0, 1.0 );
+//     return mix( d2, d1, h ) - k*h*(1.0-h); }
+// float sdRoundedBox( in vec2 p, in vec2 b, in vec4 r )
+// {
+//     r.xy = (p.x>0.0)?r.xy : r.zw;
+//     r.x  = (p.y>0.0)?r.x  : r.y;
+//     vec2 q = abs(p)-b+r.x;
+//     return min(max(q.x,q.y),0.0) + length(max(q,0.0)) - r.x;
+// }
+// float opRound( in vec2 p, in float r )
+// {
+//   return sdBox(p, vec2(1., 0.), vec2(.1)) - r;
+// }
+// float opRoundBox( in vec2 p, in vec2 pos, in vec2 size, in float r )
+// {
+//   return sdBox(p, pos, size) - r;
+// }
+// // https://www.shadertoy.com/view/ll2GD3
+// vec3 palette(in float t, in vec3 a, in vec3 b, in vec3 c, in vec3 d)
+// {
+//     t = clamp(t, 0., 1.);
+//     return a + b*cos(6.28318*(c*t+d));
+// }
+// vec3 shade(float sd)
+// {
+//     float maxDist = 2.0;
+//     vec3 palCol = palette(clamp(0.5-sd*0.4, -maxDist,maxDist), 
+//                       vec3(0.3,0.3,0.0),vec3(0.8,0.8,0.1),vec3(0.9,0.7,0.0),vec3(0.3,0.9,0.8));
+//     vec3 col = palCol;
+//     // Darken around surface
+// 	col = mix(col, col*1.0-exp(-10.0*abs(sd)), 0.4);
+// 	// repeating lines
+//     col *= 0.8 + 0.2*cos(150.0*sd);
+//     // White outline at surface
+//     col = mix(col, vec3(1.0), 1.0-smoothstep(0.0,0.01,abs(sd)));
+//     return col;
+// }
+// float sdf(vec2 p)
+// {
+//     float d = 1000.0;
+//     float a = sdCircle(p, vec2(0., 0.), 0.35);
+//     //float b = sdCircle(p, vec2( 0.7 + sin(iTime/2.)/2., 0.1), 0.55);
+//     //float c = sdBox(p, vec2( -0.7 + sin(iTime/2.)/2., -.4), vec2(.5));
+//     //return sminCubic(sminCubic(a,b,.2),c,.6);
+//    //float a = sdBox(p, vec2(0., -1.), vec2(.5));
+//     //float a = opRoundBox(p, vec2(1,1), vec2(.5),.1);
+//     float b = opRoundBox(p, vec2(-1,0), vec2(.5),.1);
+// 	return opSmoothUnion(a,b,.4); 
+// 	return a;
+// }
+// vec2 screenToWorld(vec2 screen)
+// {
+//     vec2 result = 2.0 * (screen/u_resolution.xy - 0.5);
+//     result.x *= u_resolution.x/u_resolution.y;
+//     return result;
+// }
+// void main(){
+//   vec2 st = gl_FragCoord.xy/u_resolution;
+//   float y = st.x;
+//   vec3 color = vec3(y);
+//   // Plot a line
+//   float pct = plot(st,y);
+//   color = (1.0-pct)*color+pct*vec3(0.0,1.0,0.0);
+//   gl_FragColor = vec4(st.x,st.y,0.0,1.0);
+//   vec2 fragCoord = gl_FragCoord.xy;
+//     // project screen coordinate into world
+// 	vec2 p = screenToWorld(fragCoord);
+//     // signed distance for scene
+//     float sd = sdf(p);
+// // compute signed distance to a colour
+//     vec3 col = shade(sd);
+// 	gl_FragColor = vec4(col, 1.0);
+// 	//if (distance(fragCoord, vec2(0,0)) < 1000.) {
+// 	//	gl_FragColor = vec4(1,0,0,0);
+// 	//}
+// }
+//   `,
+//     vert: `
+//     attribute vec2 position;
+//     void main(){
+//       gl_Position = vec4(position, 0, 1);
+//     }
+//   `,
+//     count: 4,
+//     primitive: 'triangle fan',
+//     uniforms: {
+//         //@ts-ignore
+//         u_resolution: regl.prop('resolution')
+//     },
+//     attributes: {
+//         position: [
+//             [-1, -1], [-1, 1], [1, 1], [1, -1]
+//         ]
+//     }
+// })
+// regl.frame(() => {
+//     let resolution = [window.innerWidth, window.innerHeight]
+//     draw({
+//         resolution
+//     })
+// })
+},{"./Game":"core/Game.ts"}],"../../../../../usr/local/lib/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;
@@ -10670,7 +11209,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "50807" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "64024" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
